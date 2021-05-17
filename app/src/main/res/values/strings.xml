@@ -1,4 +1,3 @@
 <resources>
     <string name="app_name">BluetoothChat</string>
-    <string name="uuid" translatable="false">a8d52687-55bb-4b1b-b8f5-a1b17cdb0e59</string>
 </resources>

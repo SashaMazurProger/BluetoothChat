@@ -1,100 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:context=".MainActivity">
+        xmlns:tools="http://schemas.android.com/tools">
 
-    <TextView
-            android:id="@+id/text_view_address"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
-            android:text="TextView"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <data>
 
-    <TextView
-            android:id="@+id/text_view_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:text="TextView"
-            app:layout_constraintBaseline_toBaselineOf="@+id/text_view_address"
-            app:layout_constraintEnd_toEndOf="parent" />
+        <variable
+                name="viewModel"
+                type="com.sashamprog.bluetoothchat.MainViewModel" />
+    </data>
 
-    <Spinner
-            android:id="@+id/spinner_devices"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/text_view_address" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-    <Button
-            android:text="Вибро"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/button_vibrate"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/list_view"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginEnd="8dp" />
+        <TextView
+                android:id="@+id/text_view_address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:text='@{"Address: " + viewModel.bluetoothAddress}'
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="TextView" />
 
-    <Button
-            android:text="WIFI"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/button_wifi"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toBottomOf="@+id/list_view"
-            app:layout_constraintEnd_toStartOf="@id/button_vibrate"
-            android:layout_marginEnd="8dp" />
+        <TextView
+                android:id="@+id/text_view_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:text="@{ viewModel.bluetoothName }"
+                app:layout_constraintBaseline_toBaselineOf="@+id/text_view_address"
+                app:layout_constraintEnd_toEndOf="parent"
+                tools:text="TextView" />
 
-    <Button
-            android:id="@+id/button_connect"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Начать чат"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/spinner_devices" />
+        <Spinner
+                android:id="@+id/spinner_devices"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/text_view_address" />
 
-    <EditText
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:inputType="textPersonName"
-            android:hint="Сообщение..."
-            android:ems="10"
-            android:id="@+id/edit_text_message"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintBottom_toBottomOf="@+id/image_view_send"
-            android:layout_marginEnd="8dp"
-            app:layout_constraintEnd_toStartOf="@+id/image_view_send"
-            app:layout_constraintTop_toTopOf="@+id/image_view_send" />
+        <Button
+                android:id="@+id/button_vibrate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:onClick="@{ () -> viewModel.onVibrateButtonClicked() }"
+                android:text="Вибро"
+                app:layout_constraintBottom_toBottomOf="@+id/list_view"
+                app:layout_constraintEnd_toEndOf="parent" />
 
-    <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:srcCompat="@android:drawable/ic_menu_send"
-            android:id="@+id/image_view_send"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="16dp"
-            android:layout_marginEnd="8dp" />
+        <Button
+                android:id="@+id/button_wifi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:onClick="@{ () -> viewModel.onWifiButtonClicked() }"
+                android:text="WIFI"
+                app:layout_constraintBottom_toBottomOf="@+id/list_view"
+                app:layout_constraintEnd_toStartOf="@id/button_vibrate" />
 
-    <ListView
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            app:layout_constraintTop_toBottomOf="@+id/button_connect"
-            app:layout_constraintBottom_toTopOf="@+id/edit_text_message"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            android:id="@+id/list_view" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <Button
+                android:id="@+id/button_connect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:onClick="@{ () -> viewModel.onConnectButtonClicked() }"
+                android:text="Начать чат"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/spinner_devices" />
+
+        <EditText
+                android:id="@+id/edit_text_message"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:ems="10"
+                android:hint="Сообщение..."
+                android:inputType="textPersonName"
+                android:text="@={ viewModel.userMessage }"
+                app:layout_constraintBottom_toBottomOf="@+id/image_view_send"
+                app:layout_constraintEnd_toStartOf="@+id/image_view_send"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/image_view_send" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/image_view_send"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="16dp"
+                android:onClick="@{ () -> viewModel.onSendMessageButtonClicked() }"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:srcCompat="@android:drawable/ic_menu_send" />
+
+        <ListView
+                android:id="@+id/list_view"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                app:layout_constraintBottom_toTopOf="@+id/edit_text_message"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/button_connect" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</layout>
