@@ -14,19 +14,23 @@ import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
 import com.sashamprog.bluetoothchat.databinding.ActivityMainBinding
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.android.synthetic.main.activity_main.*
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.inject.Inject
 import kotlin.collections.ArrayList
 
+@AndroidEntryPoint
 class MainActivity : FragmentActivity() {
 
     private lateinit var mDataBinding: ActivityMainBinding
-    private lateinit var mViewModel: MainViewModel
+    private val mViewModel: MainViewModel by viewModels()
     private var messageAdapter: ArrayAdapter<String>? = null
     private var mBoundedAdapter: ArrayAdapter<String>? = null
 
@@ -51,8 +55,6 @@ class MainActivity : FragmentActivity() {
 
         messageAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1)
         list_view.adapter = messageAdapter
-
-        mViewModel = ViewModelProvider(this).get(MainViewModel::class.java)
 
         mDataBinding.setVariable(BR.viewModel, mViewModel)
 

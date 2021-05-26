@@ -5,12 +5,15 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import java.io.OutputStream
 import java.nio.charset.Charset
 import java.util.*
+import javax.inject.Inject
 
-class MainViewModel : ViewModel() {
+@HiltViewModel
+class MainViewModel @Inject constructor() : ViewModel() {
 
     private var asyncJobs: MutableList<Job> = mutableListOf()
     private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
