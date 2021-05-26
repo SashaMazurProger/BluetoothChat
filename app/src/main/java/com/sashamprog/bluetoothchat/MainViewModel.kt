@@ -11,20 +11,29 @@ import java.io.OutputStream
 import java.nio.charset.Charset
 import java.util.*
 import javax.inject.Inject
+import kotlin.collections.ArrayList
 
 @HiltViewModel
-class MainViewModel @Inject constructor() : ViewModel() {
+class MainViewModel @Inject constructor(private val mChatRepository: IChatRepository) :
+    ViewModel() {
 
     private var asyncJobs: MutableList<Job> = mutableListOf()
     private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
 
-    private var mMessages: MutableList<Message> = mutableListOf()
+    private var mMessages: ArrayList<Message> = arrayListOf()
     private var socket: BluetoothSocket? = null
     private var outputStream: OutputStream? = null
     private var uuid: UUID = UUID.fromString(UUID_STRING)
     val messages: MutableLiveData<List<Message>> = MutableLiveData()
     val bondedDevices: MutableLiveData<List<BluetoothDevice>> = MutableLiveData()
     var boundedDevicePosition: Int? = null
+        set(value) {
+            field = value
+
+//        if(value!=null){
+//
+//        }
+        }
 
     val bluetoothAddress: MutableLiveData<String> = MutableLiveData("")
     val bluetoothName: MutableLiveData<String> = MutableLiveData("")
@@ -40,6 +49,14 @@ class MainViewModel @Inject constructor() : ViewModel() {
         } else {
             enableBluetooth.value = Any()
         }
+
+        val cachedMessages = mChatRepository.loadMessages("test") //TODO test
+
+        if (!cachedMessages.isNullOrEmpty()) {
+            mMessages.addAll(cachedMessages)
+        }
+
+        messages.value = mMessages
     }
 
     private fun sendMessage(message: String) {
@@ -62,7 +79,7 @@ class MainViewModel @Inject constructor() : ViewModel() {
         setupServer()
     }
 
-    fun setupClient(device: BluetoothDevice?) {
+    private fun setupClient(device: BluetoothDevice?) {
         //client
         launchAsync {
             asyncAwait {
@@ -168,6 +185,11 @@ class MainViewModel @Inject constructor() : ViewModel() {
             )
         )
         messages.value = mMessages
+
+        //TODO test
+//        if (socket?.remoteDevice != null) {
+        mChatRepository.saveMessages("test", mMessages)
+//        }
     }
 
     //
