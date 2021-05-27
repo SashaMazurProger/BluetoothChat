@@ -5,6 +5,7 @@ import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothSocket
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import java.io.OutputStream
@@ -14,27 +15,18 @@ import javax.inject.Inject
 import kotlin.collections.ArrayList
 
 @HiltViewModel
-class MainViewModel @Inject constructor(private val mChatRepository: IChatRepository) :
+class MainViewModel @Inject constructor(@SerializableChatRepository private val mChatRepository: IChatRepository) :
     ViewModel() {
 
-    private var asyncJobs: MutableList<Job> = mutableListOf()
     private val bluetoothAdapter: BluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
-
     private var mMessages: ArrayList<Message> = arrayListOf()
     private var socket: BluetoothSocket? = null
     private var outputStream: OutputStream? = null
     private var uuid: UUID = UUID.fromString(UUID_STRING)
+
+    var boundedDevicePosition: Int? = null
     val messages: MutableLiveData<List<Message>> = MutableLiveData()
     val bondedDevices: MutableLiveData<List<BluetoothDevice>> = MutableLiveData()
-    var boundedDevicePosition: Int? = null
-        set(value) {
-            field = value
-
-//        if(value!=null){
-//
-//        }
-        }
-
     val bluetoothAddress: MutableLiveData<String> = MutableLiveData("")
     val bluetoothName: MutableLiveData<String> = MutableLiveData("")
     val userMessage: MutableLiveData<String> = MutableLiveData()
@@ -60,13 +52,11 @@ class MainViewModel @Inject constructor(private val mChatRepository: IChatReposi
     }
 
     private fun sendMessage(message: String) {
-        launchAsync {
-            asyncAwait {
-                try {
-                    outputStream?.write(message.toByteArray(Charset.forName("UTF-8")))
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                outputStream?.write(message.toByteArray(Charset.forName("UTF-8")))
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
@@ -79,50 +69,50 @@ class MainViewModel @Inject constructor(private val mChatRepository: IChatReposi
         setupServer()
     }
 
+    /**
+     * For sending messages to remote device
+     * */
     private fun setupClient(device: BluetoothDevice?) {
-        //client
-        launchAsync {
-            asyncAwait {
-                socket?.close()
-                socket = try {
-                    device?.createRfcommSocketToServiceRecord(uuid)
-                } catch (e: Exception) {
-                    null
-                }
-                bluetoothAdapter.cancelDiscovery()
-                try {
-                    socket?.connect()
-                    startListenMessages()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
+        viewModelScope.launch(Dispatchers.IO) {
+            socket?.close()
+            socket = try {
+                device?.createRfcommSocketToServiceRecord(uuid)
+            } catch (e: Exception) {
+                null
+            }
+            bluetoothAdapter.cancelDiscovery()
+            try {
+                socket?.connect()
+                startListenMessages()
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 
+    /**
+     * For listening messages from remote device
+     * */
     private fun setupServer() {
-        //server
-        launchAsync {
-            asyncAwait {
-                val serverSocket = try {
-                    bluetoothAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, uuid)
+        viewModelScope.launch(Dispatchers.IO) {
+            val serverSocket = try {
+                bluetoothAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, uuid)
+            } catch (e: Exception) {
+                null
+            }
+
+            var loop = true
+            while (loop) {
+                socket = try {
+                    serverSocket?.accept()
                 } catch (e: Exception) {
+                    loop = false
                     null
                 }
-
-                var loop = true
-                while (loop) {
-                    socket = try {
-                        serverSocket?.accept()
-                    } catch (e: Exception) {
-                        loop = false
-                        null
-                    }
-                    socket?.also {
-                        startListenMessages()
-                        serverSocket?.close()
-                        loop = false
-                    }
+                socket?.also {
+                    startListenMessages()
+                    serverSocket?.close()
+                    loop = false
                 }
             }
         }
@@ -138,19 +128,17 @@ class MainViewModel @Inject constructor(private val mChatRepository: IChatReposi
     }
 
     private fun listenMessages() {
-        launchAsync {
-            asyncAwait {
-                val input = socket?.inputStream
-                val buffer = ByteArray(1024)
+        viewModelScope.launch(Dispatchers.IO) {
+            val input = socket?.inputStream
+            val buffer = ByteArray(1024)
 
-                while (socket != null && socket!!.isConnected) {
-                    try {
-                        input?.read(buffer)
-                        val message = String(buffer, Charset.forName("UTF-8"))
-                        launchAsync { handleMessage(message) }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+            while (socket != null && socket!!.isConnected) {
+                try {
+                    input?.read(buffer)
+                    val message = String(buffer, Charset.forName("UTF-8"))
+                    launch(Dispatchers.Main) { handleMessage(message) }
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
             }
         }
@@ -188,7 +176,7 @@ class MainViewModel @Inject constructor(private val mChatRepository: IChatReposi
 
         //TODO test
 //        if (socket?.remoteDevice != null) {
-        mChatRepository.saveMessages("test", mMessages)
+        viewModelScope.launch(Dispatchers.IO) { mChatRepository.saveMessages("test", mMessages) }
 //        }
     }
 
@@ -223,7 +211,6 @@ class MainViewModel @Inject constructor(private val mChatRepository: IChatReposi
 
     override fun onCleared() {
         super.onCleared()
-        cancelAllAsync()
         socket?.close()
         try {
             outputStream?.close()
@@ -236,29 +223,4 @@ class MainViewModel @Inject constructor(private val mChatRepository: IChatReposi
         const val UUID_STRING: String = "a8d52687-55bb-4b1b-b8f5-a1b17cdb0e59"
         const val APP_NAME: String = "BluetoothChat"
     }
-
-
-    fun launchAsync(block: suspend CoroutineScope.() -> Unit): Job {
-        val job: Job = GlobalScope.launch(Dispatchers.Main) { block() }
-        asyncJobs.add(job)
-        job.invokeOnCompletion { asyncJobs.remove(job) }
-        return job
-    }
-
-    suspend fun <T> async(block: suspend CoroutineScope.() -> T): T =
-        withContext(Dispatchers.Default) { block() }
-
-    private fun cancelAllAsync() {
-        if (asyncJobs.size > 0) {
-            for (i in asyncJobs.lastIndex downTo 0) {
-                try {
-                    asyncJobs[i].cancel()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-            }
-        }
-    }
-
-    suspend fun <T> asyncAwait(block: suspend CoroutineScope.() -> T): T = async(block)
 }

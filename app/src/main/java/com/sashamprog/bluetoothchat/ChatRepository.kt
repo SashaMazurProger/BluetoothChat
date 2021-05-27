@@ -7,6 +7,11 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.lang.Exception
 import javax.inject.Inject
+import javax.inject.Qualifier
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class SerializableChatRepository
 
 class ChatRepository @Inject constructor(@ApplicationContext private val mContext: Context) :
     IChatRepository {
